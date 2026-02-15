@@ -1,7 +1,7 @@
 # ==================================================
 # Imports
 # ==================================================
-import os                              # ADDED (for Render PORT)
+import os
 import pandas as pd
 import plotly.express as px
 
@@ -17,26 +17,21 @@ external_stylesheets = [
 
 
 # ==================================================
-# Create Dash App (ONLY ONCE)
+# Create Dash App
 # ==================================================
-app = Dash(
-    __name__,
-    external_stylesheets=external_stylesheets
-)
-
-server = app.server                   # ✅ REQUIRED FOR RENDER
+app = Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server   # REQUIRED FOR RENDER
 
 
 # ==================================================
 # Load Data
 # ==================================================
-
 patients = pd.read_csv("content/IndividualDetails.csv")
 confirmed = pd.read_csv("content/time_series_covid_19_confirmed.csv")
 
 
 # ==================================================
-# KPI METRICS CALCULATION
+# KPI METRICS
 # ==================================================
 total_patients = patients.shape[0]
 
@@ -54,7 +49,7 @@ deaths = patients[
 
 
 # ==================================================
-# DAY-BY-DAY CONFIRMED CASES (LINE CHART)
+# DAY-BY-DAY CASES
 # ==================================================
 date_columns = confirmed.columns[4:]
 daily_cases = confirmed[date_columns].sum()
@@ -64,10 +59,7 @@ df_daily = pd.DataFrame({
     "Cases": daily_cases.values
 })
 
-df_daily["Date"] = pd.to_datetime(
-    df_daily["Date"],
-    format="%m/%d/%y"
-)
+df_daily["Date"] = pd.to_datetime(df_daily["Date"], format="%m/%d/%y")
 
 line_fig = px.line(
     df_daily,
@@ -78,20 +70,14 @@ line_fig = px.line(
 
 
 # ==================================================
-# AGE DISTRIBUTION (PIE CHART)
+# AGE DISTRIBUTION
 # ==================================================
-patients["age"] = pd.to_numeric(
-    patients["age"],
-    errors="coerce"
-)
-
-bins = [0, 20, 30, 40, 50, 60, 70, 120]
-labels = ["0-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70+"]
+patients["age"] = pd.to_numeric(patients["age"], errors="coerce")
 
 patients["age_bracket"] = pd.cut(
     patients["age"],
-    bins=bins,
-    labels=labels,
+    bins=[0, 20, 30, 40, 50, 60, 70, 120],
+    labels=["0-19", "20-29", "30-39", "40-49", "50-59", "60-69", "70+"],
     right=False
 )
 
@@ -103,7 +89,7 @@ age_fig = px.pie(
 
 
 # ==================================================
-# STATE-WISE HOSPITALIZED (BAR CHART)
+# STATE-WISE HOSPITALIZED
 # ==================================================
 state_hospitalized = (
     patients[patients["current_status"] == "Hospitalized"]
@@ -121,10 +107,9 @@ bar_fig = px.bar(
 
 
 # ==================================================
-# APP LAYOUT
+# LAYOUT
 # ==================================================
 app.layout = html.Div(
-
     [
         html.H1(
             "COVID-19 Dashboard",
@@ -135,10 +120,7 @@ app.layout = html.Div(
             [
                 html.Div(
                     html.Div(
-                        [
-                            html.H4("Total Cases"),
-                            html.H2(total_patients)
-                        ],
+                        [html.H4("Total Cases"), html.H2(total_patients)],
                         className="card-body text-light text-center"
                     ),
                     className="card bg-danger col-md-3"
@@ -146,10 +128,7 @@ app.layout = html.Div(
 
                 html.Div(
                     html.Div(
-                        [
-                            html.H4("Active"),
-                            html.H2(active_patients)
-                        ],
+                        [html.H4("Active"), html.H2(active_patients)],
                         className="card-body text-light text-center"
                     ),
                     className="card bg-primary col-md-3"
@@ -157,10 +136,7 @@ app.layout = html.Div(
 
                 html.Div(
                     html.Div(
-                        [
-                            html.H4("Recovered"),
-                            html.H2(recovered_patients)
-                        ],
+                        [html.H4("Recovered"), html.H2(recovered_patients)],
                         className="card-body text-light text-center"
                     ),
                     className="card bg-warning col-md-3"
@@ -168,10 +144,7 @@ app.layout = html.Div(
 
                 html.Div(
                     html.Div(
-                        [
-                            html.H4("Deaths"),
-                            html.H2(deaths)
-                        ],
+                        [html.H4("Deaths"), html.H2(deaths)],
                         className="card-body text-light text-center"
                     ),
                     className="card bg-success col-md-3"
@@ -182,40 +155,25 @@ app.layout = html.Div(
 
         html.Div(
             [
-                html.Div(
-                    dcc.Graph(figure=line_fig),
-                    className="col-md-8"
-                ),
-                html.Div(
-                    dcc.Graph(figure=age_fig),
-                    className="col-md-4"
-                ),
+                html.Div(dcc.Graph(figure=line_fig), className="col-md-8"),
+                html.Div(dcc.Graph(figure=age_fig), className="col-md-4"),
             ],
             className="row"
         ),
 
         html.Div(
-            [
-                html.Div(
-                    dcc.Graph(figure=bar_fig),
-                    className="col-md-12"
-                )
-            ],
+            [html.Div(dcc.Graph(figure=bar_fig), className="col-md-12")],
             className="row mt-4"
         ),
     ],
-
     className="container-fluid",
-    style={
-        "backgroundColor": "#1f2c38",
-        "minHeight": "100vh"
-    }
+    style={"backgroundColor": "#1f2c38", "minHeight": "100vh"}
 )
 
 
 # ==================================================
-# Run Server (RENDER SAFE)
+# RUN SERVER (RENDER SAFE)
 # ==================================================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8050))   # ✅ REQUIRED
+    port = int(os.environ.get("PORT", 8050))
     app.run(host="0.0.0.0", port=port, debug=False)
